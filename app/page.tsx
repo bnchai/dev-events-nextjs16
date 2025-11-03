@@ -9,9 +9,7 @@ const Home = () => {
         <h1 className="font-bold text-4xl text-center">
           The Hub for Every Dev
           <br />
-          <span className="text-gradient to-cyan-400">
-            Event You Can&apos;t Miss
-          </span>
+          <span className="text-gradient">Event You Can&apos;t Miss</span>
         </h1>
         <p className="text-center mt-4">
           Hackathons, Meetups, and Conferences, All in One Place
