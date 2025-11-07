@@ -1,9 +1,13 @@
 import EventCard from '@/components/EventCard';
 import { IEvent } from '@/database/models';
 import { BASE_URL } from '@/lib/api';
+import { cacheLife } from 'next/cache';
 import Image from 'next/image';
 
 const Home = async () => {
+  'use cache';
+  cacheLife('hours');
+
   const response = await fetch(`${BASE_URL}/api/events/`);
   if (!response.ok) {
     throw new Error('Failed to fetch event');
