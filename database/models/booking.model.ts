@@ -2,7 +2,7 @@ import Event from '@/database/models/event.model';
 import { model, Model, models, Schema, Types } from 'mongoose';
 
 export interface IBooking {
-  eventId: Types.ObjectId;
+  eventId: string | Types.ObjectId;
   email: string;
   createdAt: Date;
   updatedAt: Date;
@@ -26,7 +26,12 @@ const bookingSchema = new Schema<IBooking>(
       ],
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toObject: {
+      flattenObjectIds: true,
+    },
+  }
 );
 
 bookingSchema.pre('save', async function (next) {

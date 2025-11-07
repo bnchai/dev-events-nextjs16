@@ -1,16 +1,34 @@
 'use client';
 
+import { createBooking } from '@/lib/actions/booking.action';
+import posthog from 'posthog-js';
 import { FormEvent, useState } from 'react';
 
-const BookEvent = () => {
+const BookEvent = ({ eventId, slug }: { eventId: string; slug: string }) => {
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // TODO: handleSubmit
-    setIsSubmitted(true);
+    setIsSubmitting(true);
+
+    try {
+      const response = await createBooking({ eventId, email });
+
+      if (response.success) {
+        setIsSubmitted(true);
+        posthog.capture('event_booked', { eventId, slug, email });
+      } else {
+        console.error('Booking creation failed', response.error);
+        posthog.captureException('Booking creation failed');
+      }
+    } catch (error) {
+      console.error('Booking creation failed', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -35,7 +53,10 @@ const BookEvent = () => {
 
           <button
             type="submit"
-            className="py-2 px-4 w-full bg-teal-300 text-black font-bold text-sm rounded-sm"
+            disabled={isSubmitting}
+            className={`py-2 px-4 w-full text-black font-bold text-sm rounded-sm ${
+              isSubmitting ? 'bg-neutral-500' : 'bg-teal-300'
+            }`}
           >
             Submit
           </button>

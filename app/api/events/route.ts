@@ -1,5 +1,5 @@
 import { Event } from '@/database/models';
-import dbConnect from '@/lib/mongodb';
+import dbConnect, { convertDocsToObject } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     event.image = uploadResult.secure_url;
 
-    const createdEvent = await Event.create(event);
+    const createdEvent = (await Event.create(event)).toObject();
 
     return NextResponse.json(
       { message: 'Event created successfully', event: createdEvent },
@@ -71,7 +71,8 @@ export async function GET() {
   try {
     await dbConnect();
 
-    const events = await Event.find().sort({ createdAt: -1 }).lean();
+    const eventDocs = await Event.find().sort({ createdAt: -1 });
+    const events = convertDocsToObject(eventDocs);
 
     return NextResponse.json({ events });
   } catch (e) {

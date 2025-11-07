@@ -3,29 +3,41 @@ import EventCard from '@/components/EventCard';
 import { IEvent } from '@/database/models';
 import { getSimilarEventsBySlug } from '@/lib/actions/event.action';
 import { BASE_URL } from '@/lib/api';
+import { cacheLife } from 'next/cache';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 
-const EventDetailPage = async ({
+export default function EventDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return (
+    <section className="event-detail">
+      <Suspense fallback={<div>Loading...</div>}>
+        <EventDetailSuspense params={params} />
+      </Suspense>
+    </section>
+  );
+}
+
+const EventDetailSuspense = async ({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) => {
+  'use cache';
+  cacheLife('hours');
+
+  await new Promise((r) => setTimeout(r, 3000));
+
   const { slug } = await params;
 
   let event: IEvent | undefined = undefined;
 
   try {
-    const response = await fetch(`${BASE_URL}/api/events/${slug}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!response.ok) {
-      if (response.status === 404) return notFound();
-
-      throw new Error('Failed to fetch event');
-    }
-
-    event = await response.json();
+    event = await fetchEventDetail(slug);
   } catch (error) {
     console.error('Failed to fetch event:', error);
   }
@@ -53,7 +65,7 @@ const EventDetailPage = async ({
   } = event;
 
   return (
-    <section className="event-detail">
+    <>
       <div className="header">
         <h1>{title}</h1>
         <p>{description}</p>
@@ -125,9 +137,10 @@ const EventDetailPage = async ({
           ) : (
             <p className="mb-4 text-sm">Be the first to book your spot!</p>
           )}
-          <BookEvent />
+          <BookEvent eventId={event._id as string} slug={event.slug} />
         </div>
       </div>
+
       <div className="similar-event">
         <h2>Similar Events</h2>
         <div className="event-lists">
@@ -136,8 +149,19 @@ const EventDetailPage = async ({
           ))}
         </div>
       </div>
-    </section>
+    </>
   );
 };
 
-export default EventDetailPage;
+const fetchEventDetail = async (slug: string): Promise<IEvent> => {
+  const response = await fetch(`${BASE_URL}/api/events/${slug}`, {
+    next: { revalidate: 3600 },
+  });
+  if (!response.ok) {
+    if (response.status === 404) return notFound();
+
+    throw new Error('Failed to fetch event');
+  }
+
+  return await response.json();
+};

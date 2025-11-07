@@ -1,11 +1,12 @@
 import { generateSlug } from '@/lib/utils';
-import { Model, model, models, Schema } from 'mongoose';
+import { Model, model, models, Schema, Types } from 'mongoose';
 
 export const eventModes = ['online', 'offline', 'hybrid'] as const;
 
 export type EventMode = (typeof eventModes)[number];
 
 export interface IEvent {
+  _id: string | Types.ObjectId;
   title: string;
   slug: string;
   description: string;
@@ -108,7 +109,7 @@ const eventSchema = new Schema<IEvent>(
       },
     },
   },
-  { timestamps: true }
+  { timestamps: true, toObject: { flattenObjectIds: true } }
 );
 
 eventSchema.pre('save', function (next) {

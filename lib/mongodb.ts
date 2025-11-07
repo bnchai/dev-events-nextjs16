@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -47,5 +47,9 @@ async function dbConnect() {
 
   return cached.conn;
 }
+
+export const convertDocsToObject = (docs: Document[]) => {
+  return docs.map((doc) => doc.toObject({ flattenObjectIds: true }));
+};
 
 export default dbConnect;

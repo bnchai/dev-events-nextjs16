@@ -21,14 +21,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const sanitizedSlug = slug.trim().toLowerCase();
 
   try {
-    const event = await Event.findOne({ slug: sanitizedSlug }).lean();
-
-    if (!event) {
+    const eventDoc = await Event.findOne({ slug: sanitizedSlug });
+    if (!eventDoc) {
       return NextResponse.json(
         { message: `Event with slug ${sanitizedSlug} not found` },
         { status: 404 }
       );
     }
+
+    const event = eventDoc.toObject();
 
     return NextResponse.json(event);
   } catch (e) {
