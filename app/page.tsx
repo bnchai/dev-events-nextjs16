@@ -1,8 +1,16 @@
 import EventCard from '@/components/EventCard';
-import { events } from '@/lib/constants';
+import { IEvent } from '@/database/models';
+import { BASE_URL } from '@/lib/api';
 import Image from 'next/image';
 
-const Home = () => {
+const Home = async () => {
+  const response = await fetch(`${BASE_URL}/api/events/`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch event');
+  }
+
+  const { events } = (await response.json()) as { events: IEvent[] };
+
   return (
     <>
       <section className="my-10">
@@ -30,7 +38,7 @@ const Home = () => {
       <section id="events" className="scroll-mt-20">
         <h2 className="text-xl font-bold">Featured Events</h2>
         <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {events.map((event) => (
+          {events?.map((event) => (
             <li key={event.title}>
               <EventCard {...event} />
             </li>

@@ -1,42 +1,44 @@
 import BookEvent from '@/components/BookEvent';
 import EventCard from '@/components/EventCard';
+import { IEvent } from '@/database/models';
+import { BASE_URL } from '@/lib/api';
 import { events } from '@/lib/constants';
 import Image from 'next/image';
+import { notFound } from 'next/navigation';
 
-const EventDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
-  const fakeEvent = {
-    name: 'Quantum Leap Summit 2026: The AI Edge',
-    description:
-      'A premier one-day event dedicated to exploring the convergence of Quantum Computing and Artificial Intelligence. The focus is on practical applications and future-proofing cloud infrastructure against the exponential demands of large-scale AI models.',
-    overview:
-      'Join over 1,500 industry peers for a mix of high-level keynotes, deep-dive technical sessions, and hands-on workshops. Network with top researchers and discover the next generation of computing power.',
-    date: '2025-04-10',
-    time: '08:30',
-    location: 'The Innovation Hub, London',
-    image: '/images/event1.png',
-    mode: 'Hybrid (In-person & Virtual Live Stream)',
-    audience:
-      'Cloud Engineers, Data Scientists, AI/ML Developers, and Tech Leadership',
-    agenda: [
-      '08:30 AM - 09:00 AM | Registration & Networking Breakfast',
-      '09:00 AM - 09:30 AM | Keynote: The Post-Moore Era: Why Quantum Matters Now',
-      '09:30 AM - 10:30 AM | Serverless AI: Building and Deploying Edge Models on Kubernetes',
-      '10:30 AM - 11:30 AM | Panel Discussion: Ethical AI and Regulatory Frameworks in the EU',
-      '11:30 AM - 12:30 PM | Deep Dive: Securing Multi-Cloud Environments with Zero Trust Principles',
-      '12:30 PM - 01:30 PM | Lunch & Expo Floor Visit',
-      '01:30 PM - 02:30 PM | Workshop: Intro to Qiskit and Quantum Machine Learning',
-      '02:30 PM - 03:30 PM | Case Study: Optimizing Data Pipelines for Petabyte-Scale AI Training',
-      '03:30 PM - 04:30 PM | Future of Computing: Neuromorphic Chips and Sustainable Infrastructure',
-      '04:30 PM - 05:00 PM | Closing Remarks, Q&A, and Prize Draw',
-    ],
-    organizer:
-      'The Apex Institute is a non-profit organization dedicated to fostering innovation and knowledge exchange across disruptive technologies (AI, cloud architecture, cybersecurity, and quantum research). Our mission is to bridge the gap between academic research and practical industry application.',
-  };
+const EventDetailPage = async ({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) => {
+  const { slug } = await params;
+
+  let event: IEvent | undefined = undefined;
+
+  try {
+    const response = await fetch(`${BASE_URL}/api/events/${slug}`, {
+      next: { revalidate: 3600 },
+    });
+    if (!response.ok) {
+      if (response.status === 404) return notFound();
+
+      throw new Error('Failed to fetch event');
+    }
+
+    event = await response.json();
+  } catch (error) {
+    console.error('Failed to fetch event:', error);
+  }
+
+  if (!event) return notFound();
+
+  // TODO: implement booking count
+  const bookings = 10;
 
   const fakeSimilarEvent = events.slice(0, 3);
 
   const {
-    name,
+    title,
     description,
     overview,
     date,
@@ -47,12 +49,13 @@ const EventDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
     audience,
     agenda,
     organizer,
-  } = fakeEvent;
+    tags,
+  } = event;
 
   return (
     <section className="event-detail">
       <div className="header">
-        <h1>{name}</h1>
+        <h1>{title}</h1>
         <p>{description}</p>
       </div>
       <div className="detail">
@@ -102,13 +105,26 @@ const EventDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
             </ul>
           </section>
           <section>
-            <h2>About</h2>
+            <h2>About the Organizer</h2>
             <p>{organizer}</p>
+          </section>
+          <section className="event-tags">
+            {tags.map((tag) => (
+              <div key={tag} className="tag">
+                {tag}
+              </div>
+            ))}
           </section>
         </div>
         <div className="booking-form">
           <h2>Book Your Spot</h2>
-          <p className="mb-4 text-sm">Be the first to book your spot!</p>
+          {bookings > 0 ? (
+            <p className="mb-4 text-sm">
+              {bookings} people already booked their spot!
+            </p>
+          ) : (
+            <p className="mb-4 text-sm">Be the first to book your spot!</p>
+          )}
           <BookEvent />
         </div>
       </div>

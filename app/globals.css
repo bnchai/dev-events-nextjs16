@@ -163,6 +163,14 @@
         h2 {
           @apply my-2 text-lg font-bold;
         }
+
+        .event-tags {
+          @apply flex flex-wrap items-center gap-4;
+
+          .tag {
+            @apply py-1 px-2 border bg-neutral-800 rounded-sm text-sm text-gray-300;
+          }
+        }
       }
 
       .booking-form {
