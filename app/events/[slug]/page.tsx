@@ -1,8 +1,8 @@
 import BookEvent from '@/components/BookEvent';
 import EventCard from '@/components/EventCard';
 import { IEvent } from '@/database/models';
+import { getSimilarEventsBySlug } from '@/lib/actions/event.action';
 import { BASE_URL } from '@/lib/api';
-import { events } from '@/lib/constants';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
@@ -35,7 +35,7 @@ const EventDetailPage = async ({
   // TODO: implement booking count
   const bookings = 10;
 
-  const fakeSimilarEvent = events.slice(0, 3);
+  const similarEvent = await getSimilarEventsBySlug(slug);
 
   const {
     title,
@@ -131,7 +131,7 @@ const EventDetailPage = async ({
       <div className="similar-event">
         <h2>Similar Events</h2>
         <div className="event-lists">
-          {fakeSimilarEvent.map((event) => (
+          {similarEvent.map((event) => (
             <EventCard key={event.slug} {...event} />
           ))}
         </div>

@@ -1,8 +1,8 @@
-import { EventItem } from '@/lib/constants';
+import { IEvent } from '@/database/models';
 import Image from 'next/image';
 import Link from 'next/link';
 
-const EventCard = ({ title, slug, image, date, time, location }: EventItem) => {
+const EventCard = ({ title, slug, image, date, time, location }: IEvent) => {
   return (
     <Link href={`/events/${slug}`} className="space-y-2">
       <Image
